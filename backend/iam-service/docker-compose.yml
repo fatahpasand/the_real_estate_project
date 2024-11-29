@@ -1,0 +1,23 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  iam-service:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_HOST=host.docker.internal
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=your-password
+      - DB_NAME=amlak
+      - REDIS_HOST=host.docker.internal
+      - REDIS_PORT=5891
+      - JWT_SECRET=your-secret
+    networks:
+      - kong-net
+
+networks:
+  kong-net:
+    external: true
