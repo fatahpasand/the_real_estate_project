@@ -1,0 +1,207 @@
+openapi: 3.0.0
+info:
+  title: IAM Service API 
+  version: 1.0.0
+  description: Identity and Access Management Service API
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - name
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        name:
+          type: string
+        phone:
+          type: string
+          pattern: '^\+[1-9]\d{1,14}$'
+    
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+          pattern: '^\+[1-9]\d{1,14}$'
+
+    ServiceInfo:
+      type: object
+      properties:
+        service:
+          type: string
+          example: "IAM Service"
+        status:
+          type: string
+          example: "running"
+        version:
+          type: string
+          example: "1.0.0"
+
+    APIInfo:
+      type: object
+      properties:
+        service:
+          type: string
+        version:
+          type: string
+        endpoints:
+          type: array
+          items:
+            type: string
+          
+paths:
+  /:
+    get:
+      summary: Root endpoint
+      description: Returns basic service information
+      responses:
+        '200':
+          description: Service information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceInfo'
+
+  /api/v1:
+    get:
+      summary: API information
+      description: Returns API endpoints information
+      responses:
+        '200':
+          description: API endpoints list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIInfo'
+
+  /api/v1/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User successfully registered
+        '400':
+          description: Invalid input
+  
+  /api/v1/login:
+    post:
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Successfully logged in
+          headers:
+            Authorization:
+              schema:
+                type: string
+              description: JWT token for authentication
+        '401':
+          description: Invalid credentials
+
+  /api/v1/verify/{token}:
+    get:
+      summary: Verify email address
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Email verified successfully
+        '400':
+          description: Invalid token
+
+  /api/v1/profile:
+    get:
+      summary: Get user profile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+        '401':
+          description: Unauthorized
+    put:
+      summary: Update user profile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Profile updated successfully
+        '401':
+          description: Unauthorized
+
+  /api/v1/docs/openapi.yaml:
+    get:
+      summary: OpenAPI Specification
+      description: Returns the OpenAPI specification in YAML format
+      responses:
+        '200':
+          description: OpenAPI specification
+          content:
+            application/yaml:
+              schema:
+                type: string
+
+  /api/v1/docs:
+    get:
+      summary: API Documentation
+      description: Returns the ReDoc documentation UI
+      responses:
+        '200':
+          description: ReDoc documentation page
+          content:
+            text/html:
+              schema:
+                type: string
