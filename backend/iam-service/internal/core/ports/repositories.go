@@ -1,13 +1,27 @@
 // internal/core/ports/repositories.go
 package ports
 
-import "github.com/fatahpasand/backend/iam-service/internal/core/domain"
+import (
+	"context"
+	"iam-service/internal/core/domain"
+	"time"
+)
 
 type UserRepository interface {
-    Create(user *domain.User) error
-    FindByEmail(email string) (*domain.User, error)
-    FindByID(id uint) (*domain.User, error)
-    UpdateVerificationStatus(userID uint, verified bool) error
-    StoreVerificationOTP(email, otp string) error
-    VerifyOTP(email, otp string) bool
+	Create(ctx context.Context, user *domain.User) error
+	FindByEmail(ctx context.Context, email string) (*domain.User, error)
+	FindByID(ctx context.Context, id uint) (*domain.User, error)
+	FindByPhone(ctx context.Context, phone string) (*domain.User, error) // New method
+	Update(ctx context.Context, user *domain.User) error
+	UpdateVerificationStatus(ctx context.Context, userID uint, verified bool) error
+}
+
+type CacheRepository interface {
+	SetOTP(ctx context.Context, key, value string, expiration time.Duration) error
+	GetOTP(ctx context.Context, key string) (string, error)
+	DeleteOTP(ctx context.Context, key string) error
+}
+
+type AuditRepository interface {
+	LogAudit(ctx context.Context, log *domain.AuditLog) error
 }
